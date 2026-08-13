@@ -2,12 +2,22 @@
 import { useState } from 'react';
 
 export default function Home() {
-  // State for leader details (static display, no upload needed)
-  const [leaderName] = useState('Hon. Caleb Amisi Luyai');
-  const [leaderTitle] = useState('PRM Commander-in-Chief');
-  const [leaderQuote] = useState(
-    'True power belongs to the people. Together, we are building a movement founded on equity, integrity, and absolute accountability.'
-  );
+  // State for leader details (removed unused setter assignments to resolve SonarLint S1854)
+  const leaderName = 'Hon. Caleb Amisi Luyai';
+  const leaderTitle = 'PRM Commander-in-Chief';
+  const leaderQuote =
+    'True power belongs to the people. Together, we are building a movement founded on equity, integrity, and absolute accountability.';
+  
+  const [leaderPhoto, setLeaderPhoto] = useState<string>('/mp.jpeg');
+
+  // Handle Leader Photo Upload / Update
+  const handleLeaderPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setLeaderPhoto(imageUrl);
+    }
+  };
 
   // Modal / View Switcher State for Access Control Flow
   const [activeModal, setActiveModal] = useState<'none' | 'login' | 'register'>('none');
@@ -54,31 +64,31 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col justify-between relative">
-      {/* Top Navigation Bar */}
-      <nav className="flex justify-between items-center p-6 max-w-7xl mx-auto w-full border-b border-slate-800">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between relative selection:bg-red-600 selection:text-white">
+      {/* Top Professional Navigation Bar matching logo colors */}
+      <nav className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto w-full border-b border-blue-900/40 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-3">
-          {/* Logo Display (mp1.jpeg) - Using object-contain to fit perfectly */}
-          <div className="w-10 h-10 rounded-full bg-white overflow-hidden flex items-center justify-center border border-amber-500 shadow-md p-0.5">
+          <div className="w-11 h-11 rounded-full bg-white overflow-hidden flex items-center justify-center border-2 border-red-600 shadow-md p-0.5">
             <img src="/mp1.jpeg" alt="PRM Logo" className="w-full h-full object-contain" />
           </div>
-          <span className="font-bold tracking-wide text-lg">People’s Renaissance Movement</span>
+          <div>
+            <span className="font-black tracking-wider text-base md:text-lg block text-white">PEOPLE'S RENAISSANCE MOVEMENT</span>
+            <span className="text-[10px] tracking-widest text-red-500 font-bold uppercase block">The Change We Need</span>
+          </div>
         </div>
-        <div className="flex gap-4 items-center">
-          {/* Member Login Triggers Controlled Access Modal */}
+        <div className="flex gap-3 items-center">
           <button
             type="button"
             onClick={() => setActiveModal('login')}
-            className="text-sm font-medium hover:text-amber-400 transition bg-transparent border-none cursor-pointer text-white"
+            className="text-xs md:text-sm font-semibold hover:text-red-400 transition bg-transparent border border-blue-800 px-3.5 py-2 rounded-lg cursor-pointer text-slate-200"
           >
             Member Login
           </button>
 
-          {/* Join Movement Trigger Direct Credential Form Modal */}
           <button
             type="button"
             onClick={() => setActiveModal('register')}
-            className="bg-amber-500 text-slate-950 px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-400 transition shadow-lg cursor-pointer"
+            className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-red-700 transition shadow-md cursor-pointer border border-red-500"
           >
             Join Movement
           </button>
@@ -86,50 +96,66 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        <div>
-          <span className="inline-block bg-blue-900 text-amber-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-blue-700">
-            Official 2027 Movement Platform
-          </span>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight mb-6">
-            Economic Liberation & Social Justice for All.
+      <main className="max-w-7xl mx-auto px-6 py-12 md:py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="space-y-6">
+          <div className="inline-flex items-center gap-2 bg-blue-950 border border-blue-800 text-blue-400 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
+            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+            <span>Official 2027 Movement Platform</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-none text-white">
+            Economic Liberation & <span className="text-red-600">Social Justice</span> for All.
           </h1>
-          <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-            Welcome to the official digital hub of the People’s Renaissance Movement (PRM). Stand with our Party Leader in reshaping governance, fostering transparency, and empowering grassroots communities.
+          <p className="text-slate-300 text-base md:text-lg leading-relaxed">
+            Welcome to the official digital headquarters of the People’s Renaissance Movement (PRM). Stand with our leadership in reshaping governance, fostering transparency, and empowering grassroots communities nationwide.
           </p>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 pt-2">
             <button
               type="button"
               onClick={() => setActiveModal('register')}
-              className="bg-amber-500 text-slate-950 px-8 py-4 rounded-xl font-extrabold text-base hover:bg-amber-400 transition shadow-xl text-center cursor-pointer"
+              className="bg-red-600 text-white px-7 py-3.5 rounded-xl font-extrabold text-sm hover:bg-red-700 transition shadow-xl text-center cursor-pointer border border-red-500"
             >
               Join Campaign Movement
             </button>
             <button
               type="button"
               onClick={() => setActiveModal('login')}
-              className="bg-slate-800 text-white border border-slate-700 px-8 py-4 rounded-xl font-bold text-base hover:bg-slate-700 transition text-center cursor-pointer"
+              className="bg-blue-900/40 text-blue-200 border border-blue-700/60 px-7 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-900/70 transition text-center cursor-pointer"
             >
               Access Portal
             </button>
           </div>
         </div>
 
-        {/* Leader Feature Card (mp.jpeg) */}
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 bg-amber-500 text-slate-950 font-black text-xs px-3 py-1 rounded-bl-xl uppercase z-10">
+        {/* Dynamic Editable Leader Feature Card */}
+        <div className="bg-slate-900 border border-blue-900/60 rounded-2xl p-6 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 bg-red-600 text-white font-black text-xs px-3.5 py-1.5 rounded-bl-xl uppercase tracking-wider z-10 shadow-md">
             Party Leader
           </div>
 
-          {/* Leader Photo Display (mp.jpeg) - Using object-contain so full photo fits without clipping */}
-          <div className="w-full h-80 bg-slate-950 rounded-xl mb-6 overflow-hidden flex items-center justify-center border-2 border-amber-500/45 relative">
-            <img src="/mp.jpeg" alt={leaderName} className="w-full h-full object-contain" />
+          {/* Leader Photo Display with dynamic upload capability */}
+          <div className="w-full h-72 md:h-80 bg-slate-950 rounded-xl mb-6 overflow-hidden flex items-center justify-center border-2 border-blue-800/60 relative group/img shadow-inner">
+            <img src={leaderPhoto} alt={leaderName} className="w-full h-full object-contain" />
+            
+            {/* Quick Upload Hover Overlay */}
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center p-4">
+              <label htmlFor="leader-photo-upload" className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-4 rounded-lg cursor-pointer shadow-lg transition border border-red-500">
+                Change Leader Photo
+              </label>
+              <input 
+                id="leader-photo-upload" 
+                type="file" 
+                accept="image/*" 
+                onChange={handleLeaderPhotoChange} 
+                className="hidden" 
+              />
+              <span className="text-[10px] text-slate-300 mt-2">Upload any portrait image instantly</span>
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-1">{leaderName}</h3>
-            <p className="text-sm text-amber-400 font-medium mb-3">{leaderTitle}, PRM Party</p>
-            <p className="text-sm text-slate-300 italic">
+          <div className="space-y-2">
+            <h3 className="text-2xl font-black text-white tracking-wide">{leaderName}</h3>
+            <p className="text-xs font-bold uppercase tracking-wider text-red-500">{leaderTitle} — PRM Party</p>
+            <p className="text-sm text-slate-300 italic pt-1 border-t border-slate-800">
               &ldquo;{leaderQuote}&rdquo;
             </p>
           </div>
@@ -138,8 +164,8 @@ export default function Home() {
 
       {/* SECURE ACCESS OVERLAY MODAL */}
       {activeModal !== 'none' && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-8 shadow-2xl relative">
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-blue-900/60 w-full max-w-md rounded-2xl p-8 shadow-2xl relative">
             <button
               type="button"
               onClick={() => setActiveModal('none')}
@@ -152,7 +178,7 @@ export default function Home() {
             {activeModal === 'login' && (
               <div>
                 <div className="text-center mb-6">
-                  <span className="bg-amber-500 text-slate-950 font-black px-2.5 py-0.5 rounded text-xs uppercase tracking-wider">Secure Portal</span>
+                  <span className="bg-red-600 text-white font-black px-2.5 py-0.5 rounded text-xs uppercase tracking-wider">Secure Portal</span>
                   <h2 className="text-2xl font-extrabold text-white mt-2">Member Login</h2>
                   <p className="text-xs text-slate-400 mt-1">Authenticate to access your verified PRM dashboard</p>
                 </div>
@@ -167,7 +193,7 @@ export default function Home() {
                       placeholder="name@example.com"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-red-600"
                     />
                   </div>
                   <div>
@@ -179,25 +205,25 @@ export default function Home() {
                       placeholder="••••••••"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-red-600"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full bg-amber-500 text-slate-950 py-3 rounded-lg font-extrabold text-sm hover:bg-amber-400 transition shadow-lg mt-2 cursor-pointer"
+                    className="w-full bg-red-600 text-white py-3 rounded-lg font-extrabold text-sm hover:bg-red-700 transition shadow-lg mt-2 cursor-pointer border border-red-500"
                   >
                     LOGIN TO DASHBOARD
                   </button>
                 </form>
 
-                <div className="mt-6 text-center border-t border-slate-700/60 pt-4">
+                <div className="mt-6 text-center border-t border-slate-800 pt-4">
                   <p className="text-xs text-slate-400">
                     Not a registered supporter yet?{' '}
                     <button
                       type="button"
                       onClick={() => setActiveModal('register')}
-                      className="text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+                      className="text-red-500 font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       Register for Movement
                     </button>
@@ -210,7 +236,7 @@ export default function Home() {
             {activeModal === 'register' && (
               <div>
                 <div className="text-center mb-6">
-                  <span className="bg-blue-900 text-amber-400 font-bold px-2.5 py-0.5 rounded text-xs uppercase tracking-wider border border-blue-700">Grassroots Vetting</span>
+                  <span className="bg-blue-900 text-blue-200 font-bold px-2.5 py-0.5 rounded text-xs uppercase tracking-wider border border-blue-700">Grassroots Vetting</span>
                   <h2 className="text-2xl font-extrabold text-white mt-2">Join PRM Movement</h2>
                   <p className="text-xs text-slate-400 mt-1">Provide your credentials and photo for party enrollment</p>
                 </div>
@@ -225,7 +251,7 @@ export default function Home() {
                       placeholder="e.g., Jane Atieno"
                       value={regFullName}
                       onChange={(e) => setRegFullName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-600"
                     />
                   </div>
                   <div>
@@ -237,7 +263,7 @@ export default function Home() {
                       placeholder="jane@example.com"
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-600"
                     />
                   </div>
                   <div>
@@ -248,7 +274,7 @@ export default function Home() {
                       placeholder="+254 700 000000"
                       value={regPhone}
                       onChange={(e) => setRegPhone(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-600"
                     />
                   </div>
                   <div>
@@ -260,38 +286,38 @@ export default function Home() {
                       placeholder="••••••••"
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-600"
                     />
                   </div>
                   <div>
                     <label htmlFor="reg-photo" className="block text-xs font-semibold text-slate-300 mb-1">Upload Member Photo / Credential</label>
                     <div className="flex items-center gap-3">
-                      {memberPhoto && <img src={memberPhoto} alt="Preview" className="w-10 h-10 rounded-full object-cover border border-amber-500" />}
+                      {memberPhoto && <img src={memberPhoto} alt="Preview" className="w-10 h-10 rounded-full object-cover border border-red-600" />}
                       <input
                         id="reg-photo"
                         type="file"
                         accept="image/*"
                         onChange={handleMemberPhotoChange}
-                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer"
+                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-700 cursor-pointer"
                       />
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full bg-amber-500 text-slate-950 py-3 rounded-lg font-extrabold text-sm hover:bg-amber-400 transition shadow-lg mt-3 cursor-pointer"
+                    className="w-full bg-red-600 text-white py-3 rounded-lg font-extrabold text-sm hover:bg-red-700 transition shadow-lg mt-3 cursor-pointer border border-red-500"
                   >
                     SUBMIT MOVEMENT CREDENTIALS
                   </button>
                 </form>
 
-                <div className="mt-4 text-center border-t border-slate-700/60 pt-3">
+                <div className="mt-4 text-center border-t border-slate-800 pt-3">
                   <p className="text-xs text-slate-400">
                     Already an approved member?{' '}
                     <button
                       type="button"
                       onClick={() => setActiveModal('login')}
-                      className="text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+                      className="text-red-500 font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       Member Login
                     </button>
@@ -304,8 +330,8 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        &copy; 2026 People’s Renaissance Movement (PRM). All rights reserved.
+      <footer className="border-t border-blue-950 py-6 text-center text-xs text-slate-500 bg-slate-950">
+        &copy; 2026 People’s Renaissance Movement (PRM). All rights reserved. The Change We Need.
       </footer>
     </div>
   );
