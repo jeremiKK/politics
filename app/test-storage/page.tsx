@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { app } from '@/app/lib/firebase'; // Adjust path to your firebase config
+import { app } from '../lib/firebase'; // Updated to use the correct relative path
 
 const storage = getStorage(app);
 
