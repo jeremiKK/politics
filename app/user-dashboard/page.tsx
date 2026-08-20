@@ -201,7 +201,14 @@ export default function UserDashboard() {
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2">
-            <img src={currentUser.photo || '/mp1.jpeg'} alt="User" className="w-8 h-8 rounded-full object-cover border border-amber-500" />
+            <img 
+              src={currentUser.photo || '/mp1.jpeg'} 
+              alt="User" 
+              onError={(e) => {
+                e.currentTarget.src = '/mp1.jpeg';
+              }}
+              className="w-8 h-8 rounded-full object-cover border border-amber-500" 
+            />
             <span className="text-xs font-semibold text-slate-300">{currentUser.fullName}</span>
           </div>
           <button
@@ -257,7 +264,14 @@ export default function UserDashboard() {
           <div className="md:col-span-1 bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center text-center justify-between">
             <div>
               <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-amber-500 to-slate-700 mb-4 mx-auto shadow-lg">
-                <img src={currentUser.photo || '/mp1.jpeg'} alt="Profile" className="w-full h-full rounded-full object-cover bg-slate-950" />
+                <img 
+                  src={currentUser.photo || '/mp1.jpeg'} 
+                  alt="Profile" 
+                  onError={(e) => {
+                    e.currentTarget.src = '/mp1.jpeg';
+                  }}
+                  className="w-full h-full rounded-full object-cover bg-slate-950" 
+                />
               </div>
               <h2 className="text-xl font-black text-white">{currentUser.fullName}</h2>
               <span className="inline-block bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider mt-1.5">
@@ -339,7 +353,15 @@ export default function UserDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {registeredAccounts.map((acc) => (
                 <div key={acc.email || acc.nationalId} className="bg-[#0b0f19] border border-slate-800/80 rounded-xl p-4 flex flex-col items-center text-center space-y-3 hover:border-amber-500/50 transition">
-                  <img src={acc.photo || '/mp1.jpeg'} alt="Member" className="w-16 h-16 rounded-full object-cover border-2 border-slate-700 shadow-md bg-slate-900" />
+                  <img 
+                    src={acc.photo || '/mp1.jpeg'} 
+                    alt="Member" 
+                    onError={(e) => {
+                      // Fallback if image fails to load
+                      e.currentTarget.src = '/mp1.jpeg'; 
+                    }}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-slate-700 shadow-md bg-slate-900" 
+                  />
                   <div>
                     <h4 className="font-bold text-sm text-white truncate max-w-[200px]">{acc.fullName}</h4>
                     <p className="text-[11px] text-slate-400 truncate max-w-[200px]">{acc.email}</p>
@@ -413,7 +435,16 @@ export default function UserDashboard() {
                 />
               ) : (
                 <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-amber-500 to-slate-700 flex items-center justify-center text-4xl font-black text-black shadow-2xl border-4 border-amber-400 overflow-hidden">
-                  {displayMode === 'initial' || isCameraOff || meetingType === 'audio' ? currentUser.fullName.charAt(0).toUpperCase() : <img src={currentUser.photo || '/mp1.jpeg'} alt="Me" className="w-full h-full rounded-full object-cover" />}
+                  {displayMode === 'initial' || isCameraOff || meetingType === 'audio' ? currentUser.fullName.charAt(0).toUpperCase() : (
+                    <img 
+                      src={currentUser.photo || '/mp1.jpeg'} 
+                      alt="Me" 
+                      onError={(e) => {
+                        e.currentTarget.src = '/mp1.jpeg';
+                      }}
+                      className="w-full h-full rounded-full object-cover" 
+                    />
+                  )}
                 </div>
               )}
 
@@ -432,7 +463,14 @@ export default function UserDashboard() {
               <div key={peer.id} className="bg-[#111827] border border-slate-800 rounded-2xl h-[320px] md:h-[400px] flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
                 {displayMode === 'face' ? (
                   <div className="w-full h-full relative">
-                    <img src={peer.avatar} alt={peer.name} className="w-full h-full object-cover opacity-90" />
+                    <img 
+                      src={peer.avatar} 
+                      alt={peer.name} 
+                      onError={(e) => {
+                        e.currentTarget.src = '/mp1.jpeg';
+                      }}
+                      className="w-full h-full object-cover opacity-90" 
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                   </div>
                 ) : (

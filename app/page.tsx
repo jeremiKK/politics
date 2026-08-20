@@ -1,14 +1,39 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { db, auth } from './lib/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function Home() {
+  const router = useRouter();
   const [leaderName, setLeaderName] = useState('Hon. Caleb Amisi Luyai');
   const [leaderTitle, setLeaderTitle] = useState('PRM Commander-in-Chief');
   const [leaderQuote, setLeaderQuote] = useState(
     'True power belongs to the people. Together, we are building a movement founded on equity, integrity, and absolute accountability.'
   );
   const [leaderPhoto, setLeaderPhoto] = useState<string>('/mp.jpeg');
+
+  // Fetch Leader Profile on Mount
+  useEffect(() => {
+    const fetchLeaderProfile = async () => {
+      try {
+        const docRef = doc(db, "settings", "party_leader");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.leaderName) setLeaderName(data.leaderName);
+          if (data.leaderTitle) setLeaderTitle(data.leaderTitle);
+          if (data.leaderQuote) setLeaderQuote(data.leaderQuote);
+          if (data.leaderPhoto) setLeaderPhoto(data.leaderPhoto);
+        }
+      } catch (error) {
+        console.error("Error fetching leader profile:", error);
+      }
+    };
+    fetchLeaderProfile();
+  }, []);
 
   const handleLeaderPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -18,11 +43,27 @@ export default function Home() {
     }
   };
 
-  const handleSaveChanges = () => {
-    alert('Changes saved successfully!');
+  // Save Leader Profile to Firebase
+  const handleSaveChanges = async () => {
+    try {
+      await setDoc(doc(db, "settings", "party_leader"), {
+        leaderName,
+        leaderTitle,
+        leaderQuote,
+        leaderPhoto,
+      }, { merge: true });
+      alert('Leader profile updated successfully in Firebase!');
+    } catch (error) {
+      console.error("Error saving leader profile:", error);
+      alert('Failed to save changes.');
+    }
   };
 
   const [activeModal, setActiveModal] = useState<'none' | 'login' | 'register'>('none');
+
+  // Password Visibility States
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
 
   // Login Form State
   const [loginEmail, setLoginEmail] = useState('');
@@ -35,7 +76,7 @@ export default function Home() {
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [memberPhoto, setMemberPhoto] = useState<string | null>(null);
-  const [regRole, setRegRole] = useState<'user' | 'admin'>('user'); // Toggle to choose Admin or User role on registration
+  const [regRole, setRegRole] = useState<'user' | 'admin'>('user');
 
   const handleMemberPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,80 +86,79 @@ export default function Home() {
     }
   };
 
-  // Registration Handler with dynamic Role assignment (User or Admin)
-  const handleRegisterSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  // Secure Firebase Authentication Registration Handler
+  const handleRegisterSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!regFullName || !regEmail || !regNationalId || !regPassword) {
       alert('Please fill out all mandatory movement credentials including National ID.');
       return;
     }
 
-    const existingUsers = JSON.parse(localStorage.getItem('prm_users') || '[]');
-    
-    // Check if user already exists
-    const userExists = existingUsers.some((u: any) => u.email === regEmail || u.nationalId === regNationalId);
-    if (userExists) {
-      alert('A user with this Email or National ID already exists.');
-      return;
+    try {
+      // 1. Create secure authentication entry in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword);
+      const uid = userCredential.user.uid;
+
+      // 2. Save user metadata to Firestore using UID as document ID
+      await setDoc(doc(db, "users", uid), {
+        fullName: regFullName,
+        email: regEmail,
+        nationalId: regNationalId,
+        phone: regPhone,
+        photo: memberPhoto || '/mp1.jpeg',
+        role: regRole,
+        status: regRole === 'admin' ? 'Approved' : 'Pending',
+        createdAt: new Date(),
+      });
+
+      alert(`Successfully registered as ${regRole.toUpperCase()}! Your credentials are now secured.`);
+      setActiveModal('login');
+    } catch (error: any) {
+      console.error("Error registering user to Firebase: ", error);
+      alert(`Registration failed: ${error.message || "Check your network or Firebase configuration."}`);
     }
-
-    const newUser = {
-      fullName: regFullName,
-      email: regEmail,
-      nationalId: regNationalId,
-      phone: regPhone,
-      password: regPassword,
-      photo: memberPhoto || '/mp1.jpeg',
-      role: regRole, // Captures whether they registered as 'user' or 'admin'
-      status: regRole === 'admin' ? 'Approved' : 'Pending', // Admins auto-approve or can be vetted; standard users start as Pending
-    };
-
-    existingUsers.push(newUser);
-    localStorage.setItem('prm_users', JSON.stringify(existingUsers));
-
-    alert(`Successfully registered as ${regRole.toUpperCase()}! You can now login with your credentials.`);
-    setActiveModal('login');
   };
 
-  // Secure Authentication & Routing Handler matching registered roles
-  const handleLoginSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  // Secure Firebase Authentication Login Handler
+  const handleLoginSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
       alert('Please fill in all login details.');
       return;
     }
 
-    // Default hardcoded admin check as backup
-    if (loginEmail === 'admin@prm.com' && loginPassword === 'admin123') {
-      const adminSession = { role: 'admin', email: loginEmail, fullName: 'System Admin', status: 'Approved' };
-      localStorage.setItem('prm_current_user', JSON.stringify(adminSession));
-      window.location.href = '/dashboard';
-      return;
-    }
+    try {
+      // 1. Authenticate credentials via Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+      const uid = userCredential.user.uid;
 
-    // Check Registered Users from localStorage
-    const existingUsers = JSON.parse(localStorage.getItem('prm_users') || '[]');
-    const foundUser = existingUsers.find(
-      (u: any) => u.email === loginEmail && u.password === loginPassword
-    );
+      // 2. Fetch user profile data from Firestore using the secure UID
+      const userDocRef = doc(db, "users", uid);
+      const userDocSnap = await getDoc(userDocRef);
 
-    if (foundUser) {
+      if (!userDocSnap.exists()) {
+        alert('Account profile record not found in database.');
+        return;
+      }
+
+      const foundUser: any = userDocSnap.data();
+
       if (foundUser.status !== 'Approved' && foundUser.role !== 'admin') {
         alert('Your account is still pending administrative approval by the Admin.');
         return;
       }
 
-      // Save current active session user details
-      localStorage.setItem('prm_current_user', JSON.stringify(foundUser));
+      localStorage.setItem('prm_current_user', JSON.stringify({ ...foundUser, uid }));
 
-      // Route precisely based on exact credential role saved during registration
+      // 3. Route according to role
       if (foundUser.role === 'admin') {
-        window.location.href = '/dashboard';
+        router.push('/dashboard');
       } else {
-        window.location.href = '/user-dashboard';
+        router.push('/user-dashboard');
       }
-    } else {
-      alert('Invalid credentials or account not found. Please register or check your login details.');
+    } catch (error: any) {
+      console.error("Login error: ", error);
+      alert(`Error logging in: ${error.message || "Invalid email or password."}`);
     }
   };
 
@@ -257,6 +297,7 @@ export default function Home() {
         </div>
       </main>
 
+      {/* MODALS */}
       {activeModal !== 'none' && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#111827] border border-slate-800 w-full max-w-md rounded-2xl p-8 shadow-2xl relative">
@@ -268,6 +309,7 @@ export default function Home() {
               ✕
             </button>
 
+            {/* LOGIN MODAL */}
             {activeModal === 'login' && (
               <div>
                 <div className="text-center mb-6">
@@ -290,16 +332,34 @@ export default function Home() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="login-password" className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
-                    <input
-                      id="login-password"
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full bg-[#0b0f19] border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500"
-                    />
+                    <div className="flex justify-between items-center mb-1">
+                      <label htmlFor="login-password" className="block text-xs font-semibold text-slate-300">Password</label>
+                      <button
+                        type="button"
+                        onClick={() => router.push('/auth/forgot-password')}
+                        className="text-[11px] text-amber-400 hover:underline bg-transparent border-none cursor-pointer"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <input
+                        id="login-password"
+                        type={showLoginPassword ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="w-full bg-[#0b0f19] border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500 pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white bg-transparent border-none cursor-pointer"
+                      >
+                        {showLoginPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
                   </div>
 
                   <button
@@ -325,6 +385,7 @@ export default function Home() {
               </div>
             )}
 
+            {/* REGISTER MODAL */}
             {activeModal === 'register' && (
               <div>
                 <div className="text-center mb-6">
@@ -395,15 +456,24 @@ export default function Home() {
                   </div>
                   <div>
                     <label htmlFor="reg-password" className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
-                    <input
-                      id="reg-password"
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      className="w-full bg-[#0b0f19] border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
-                    />
+                    <div className="relative">
+                      <input
+                        id="reg-password"
+                        type={showRegPassword ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        className="w-full bg-[#0b0f19] border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegPassword(!showRegPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white bg-transparent border-none cursor-pointer"
+                      >
+                        {showRegPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label htmlFor="reg-photo" className="block text-xs font-semibold text-slate-300 mb-1">Upload Member Photo</label>
