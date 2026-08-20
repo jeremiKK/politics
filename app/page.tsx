@@ -38,8 +38,11 @@ export default function Home() {
   const handleLeaderPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setLeaderPhoto(imageUrl);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLeaderPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -78,11 +81,15 @@ export default function Home() {
   const [memberPhoto, setMemberPhoto] = useState<string | null>(null);
   const [regRole, setRegRole] = useState<'user' | 'admin'>('user');
 
+  // Upgraded Base64 Member Photo Handler
   const handleMemberPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setMemberPhoto(imageUrl);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMemberPhoto(reader.result as string); // Converts image to a Base64 string savable in Firestore
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -112,6 +119,16 @@ export default function Home() {
       });
 
       alert(`Successfully registered as ${regRole.toUpperCase()}! Your credentials are now secured.`);
+      
+      // Clear Register Form States
+      setRegFullName('');
+      setRegEmail('');
+      setRegNationalId('');
+      setRegPhone('');
+      setRegPassword('');
+      setMemberPhoto(null);
+      setRegRole('user');
+
       setActiveModal('login');
     } catch (error: any) {
       console.error("Error registering user to Firebase: ", error);
